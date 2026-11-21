@@ -189,7 +189,7 @@ A origem (`painel-chamados`) não possui informação de atendente. Criei `dim_a
 ```powershell
 # No diretório do projeto
 python -m unittest discover -s tests
-# Resultado esperado: Ok (2 testes)
+# Resultado esperado: Ok (15 testes)
 ```
 
 ## Estrutura de Dados
