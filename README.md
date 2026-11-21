@@ -6,8 +6,6 @@
 
 ## Problema e Solução
 
-## Problema e Solução
-
 O projeto transforma dados fictícios de chamados de suporte em um relatório de Business Intelligence pronto para análise. A partir de 1.500 chamados de 50 filiais, o modelo estrela no SQL Server expõe indicadores operacionais como SLA, tempo médio de resolução e volume por categoria ou filial. Power BI Desktop consome as visões e entrega um relatório com cinco páginas: visão geral, prazos e pendências, filiais, atendentes e detalhe por chamado.
 
 **Problema:** Equipes de suporte precisam de visibilidade em tempo real sobre volume de chamados, cumprimento de prazos e gargalos por filial ou categoria. Sem BI, essa análise exige consultas SQL dissertáveis.
@@ -189,7 +187,7 @@ A origem (`painel-chamados`) não possui informação de atendente. Criei `dim_a
 ```powershell
 # No diretório do projeto
 python -m unittest discover -s tests
-# Resultado esperado: Ok (15 testes)
+# Resultado esperado: Ok (22 testes)
 ```
 
 ## Estrutura de Dados
@@ -200,7 +198,7 @@ python -m unittest discover -s tests
 |---|---|---|
 | id | int | ID único (1-1500) |
 | filial | nvarchar(100) | Nome da filial (50 filiais distintas) |
-| categoria | nvarchar(100) | Impressora, ERP, Rede, Acesso, Hardware |
+| categoria | nvarchar(100) | Impressora, ERP, Rede, Acesso, Hardware, NF-e |
 | prioridade | nvarchar(20) | baixa, média, alta, crítica |
 | aberto_em | datetime2 | Timestamp da abertura (UTC) |
 | resolvido_em | datetime2 | Timestamp da resolução (NULL se aberto) |
@@ -210,7 +208,6 @@ python -m unittest discover -s tests
 ## Referências
 
 - Dados origem: [painel-chamados](../painel-chamados) - 1.500 chamados fictícios
-- Plano de desenvolvimento: [Plano 15 Projetos Portfolio](../Plano-15-Projetos-Portfolio.md)
 
 ## Autor
 
