@@ -128,7 +128,7 @@ class TestIntegracaoBISuporte(unittest.TestCase):
                   'dim_atendente', 'dim_data', 'fato_chamados']
         for vista in visoes:
             self.cursor.execute(
-                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = ?";
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME = ?",
                 (vista,)
             )
             existe = self.cursor.fetchone()[0]
@@ -147,6 +147,86 @@ class TestIntegracaoBISuporte(unittest.TestCase):
 
         self.cursor.execute('SELECT COUNT(*) FROM dim_data')
         self.assertGreater(self.cursor.fetchone()[0], 0, 'dim_data deve ter registros')
+
+    def test_tempo_medio_resolucao_conferencia(self):
+        """Verifica tempo médio de resolução contra valores de confluência."""
+        self.cursor.execute('SELECT AVG(horas_resolucao) FROM fato_chamados')
+        media = self.cursor.fetchone()[0]
+        # Valor de confluência: 40,720854 horas
+        self.assertAlmostEqual(media, 40.72, places=2,
+                               msg='Tempo médio deve ser ~40,72 horas')
+
+    def test_sla_percentual(self):
+        """Verifica cálculo do SLA percentual."""
+        # Referência UTC fixa como em docs/conferencia.md
+        self.cursor.execute('''
+            SELECT 100.0 * SUM(CASE WHEN resolvido_no_prazo = 1 THEN 1 ELSE 0 END) /
+                   NULLIF(SUM(CASE WHEN status = N'resolvido' OR
+                       (status = N'aberto' AND DATEADD(hour, prazo_horas, aberto_em) < '2025-01-01T00:00:00')
+                       THEN 1 ELSE 0 END), 0) AS sla_percentual
+            FROM fato_chamados
+        ''')
+        sla = self.cursor.fetchone()[0]
+        # Valor de confluência: 56,066667%
+        self.assertAlmostEqual(sla, 56.07, places=1,
+                               msg='SLA deve ser ~56,07%')
+
+    def test_resolvidos_no_prazo(self):
+        """Verifica número de resolvidos no prazo."""
+        self.cursor.execute('''
+            SELECT COUNT(*) FROM fato_chamados
+            WHERE status = N'resolvido' AND resolvido_no_prazo = 1
+        ''')
+        resolvidos_no_prazo = self.cursor.fetchone()[0]
+        # Valor de confluência: 841 resolvidos no prazo
+        self.assertEqual(resolvidos_no_prazo, 841,
+                         'Deve haver 841 chamados resolvidos no prazo')
+
+    def test_abertos_vencidos(self):
+        """Verifica número de chamados abertos vencidos na referência UTC fixa."""
+        # Referência: 2025-01-01 00:00:00 UTC
+        self.cursor.execute('''
+            SELECT COUNT(*) FROM fato_chamados
+            WHERE status = N'aberto' AND aberto_em <= DATEADD(hour, -prazo_horas, '2025-01-01T00:00:00')
+        ''')
+        abertos_vencidos = self.cursor.fetchone()[0]
+        # Valor de confluência: 117 abertos vencidos
+        self.assertEqual(abertos_vencidos, 117,
+                         'Deve haver 117 chamados abertos vencidos')
+
+    def test_dim_categoria_registros(self):
+        """Verifica dimensão de categoria."""
+        self.cursor.execute('SELECT COUNT(*) FROM dim_categoria')
+        total = self.cursor.fetchone()[0]
+        self.assertEqual(total, 5, 'dim_categoria deve ter 5 registros')
+
+    def test_dim_prioridade_registros(self):
+        """Verifica dimensão de prioridade."""
+        self.cursor.execute('SELECT COUNT(*) FROM dim_prioridade')
+        total = self.cursor.fetchone()[0]
+        self.assertEqual(total, 4, 'dim_prioridade deve ter 4 registros')
+
+    def test_dim_atendente_registros(self):
+        """Verifica dimensão de atendente - único valor 'Não informado'."""
+        self.cursor.execute('SELECT COUNT(*) FROM dim_atendente')
+        total = self.cursor.fetchone()[0]
+        self.assertEqual(total, 1, 'dim_atendente deve ter 1 registro')
+
+    def test_horas_resolucao_calculadas(self):
+        """Verifica que horas_resolucao é calculada corretamente na visão."""
+        self.cursor.execute('''
+            SELECT COUNT(*) FROM fato_chamados
+            WHERE status = N'resolvido' AND horas_resolucao IS NULL
+        ''')
+        nulos = self.cursor.fetchone()[0]
+        self.assertEqual(nulos, 0,
+                         'Chamados resolvidos devem ter horas_resolucao calculada')
+
+    def test_filial_contagem(self):
+        """Verifica que há 50 filiais distintas."""
+        self.cursor.execute('SELECT COUNT(DISTINCT filial) FROM fato_chamados')
+        total = self.cursor.fetchone()[0]
+        self.assertEqual(total, 50, 'Devem existir exatamente 50 filiais distintas')
 
 
 if __name__ == '__main__':
