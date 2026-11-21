@@ -1,56 +1,29 @@
 # BI de Suporte
 
-> **Status: em desenvolvimento.** O código entra aos poucos; abaixo está o planejamento do projeto.
+> **Status: em desenvolvimento.** Carga, visões e roteiro disponíveis; relatório Power BI ainda não foi montado.
 
-## O que é
+## Problema e solução
 
-Relatório em Power BI sobre a operação de suporte fictícia, com modelo estrela no SQL Server, medidas DAX documentadas e cinco páginas: visão geral, prazo e pendências, filiais, atendentes e detalhe do chamado.
+O projeto reúne chamados fictícios do [painel de chamados](https://github.com/Hey-Pablo/painel-chamados) em um modelo estrela para analisar volume, prazos e filiais. SQL Server fornece carga e visões; Power BI Desktop oferece modelo, DAX e visualizações. Nenhum dado de cliente é usado.
 
-## O que prova
+## Como executar
 
-Power BI e SQL Server juntos: modelagem dimensional, Power Query, DAX e validação dos números.
+1. Em SQL Server, crie um banco de demonstração dedicado e execute `sql/01_carga.sql`, seguido de `sql/02_visoes.sql`, usando uma ferramenta que entenda `GO`. A carga substitui a tabela `dbo.chamados` desse banco.
+2. Siga [o roteiro de Power BI](docs/roteiro-powerbi.md) para montar o relatório e [a conferência](docs/conferencia.md) para comparar os números.
+3. Teste localmente a integridade da carga com `python3 -m unittest discover -s tests`.
 
-## Stack
+## Estrutura e decisões
 
-SQL Server, Power Query, Power BI Desktop e DAX.
+- `sql/chamados.json`: cópia dos 1.500 registros fictícios do projeto 4; `01_carga.sql` contém os mesmos registros para execução sem importação externa.
+- `sql/02_visoes.sql`: fato e dimensões, com data de abertura como chave temporal.
+- `docs/perguntas.md`, `medidas.md`, `conferencia.md` e `roteiro-powerbi.md`: perguntas, fórmulas, comparação e montagem.
+- `tests/`: verificações locais da carga e das regras sobre os dados.
 
-## Estrutura
+O SLA segue o painel de origem: resolvidos no prazo divididos por resolvidos mais abertos vencidos. Os horários são UTC. Atendente e reabertura não existem na origem e são representados como não informados, não como eventos fictícios.
 
-```
-bi-suporte/
-├─ sql/
-│  ├─ 01_carga.sql          # dados do projeto 4
-│  └─ 02_visoes.sql         # fato_chamados e dimensões
-├─ powerbi/                 # arquivo do relatório (.pbip ou .pbix)
-├─ docs/
-│  ├─ perguntas.md          # as 10 perguntas que o relatório responde
-│  ├─ modelo.png
-│  ├─ medidas.md            # cada medida DAX com explicação
-│  └─ conferencia.md        # número do painel ao lado da consulta SQL
-└─ README.md
-```
+## Limitações e próximos passos
 
-## Plano
-
-1. Escreva 10 perguntas de negócio, como "quais filiais concentram chamados fora do prazo?".
-2. Carregue os chamados no SQL Server e crie as visões: fato e dimensões de data, filial, categoria, prioridade e atendente.
-3. Power Query: tipos, tabela calendário e colunas de apoio.
-4. Modelo estrela com relacionamentos de um para muitos.
-5. Medidas: total, resolvidos, pendentes, tempo médio de resolução, percentual no prazo, reabertos e variação contra o mês anterior.
-6. Páginas com segmentações, dica de ferramenta personalizada e detalhamento (drill-through).
-7. Conferência: 5 números do relatório batidos com consulta SQL.
-8. Publicação: arquivo no repositório, GIF de navegação e PDF exportado.
-
-## Como deve funcionar
-
-- Abrir o arquivo e atualizar carrega os dados do SQL Server.
-- Cada uma das 10 perguntas tem resposta visível em uma página.
-- Clicar em uma filial filtra as demais visualizações.
-- A tabela de conferência mostra painel e SQL com o mesmo valor.
-
-## Prazo
-
-1 a 2 semanas.
+SQL Server e Power BI Desktop não foram executados nesta VPS. É preciso executar os scripts, criar e validar o relatório, publicar GIF ou vídeo e exportar PDF. A carga é uma fotografia estática, não uma integração automática. A IA auxiliou na implementação e documentação; a revisão técnica e a validação no ambiente de destino continuam necessárias.
 
 ## Autor
 
