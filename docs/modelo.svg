@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .dim { fill: #E8F4F8; stroke: #2E86AB; stroke-width: 2; rx: 10; ry: 10; }
+    .fato { fill: #D4E3F7; stroke: #1B4965; stroke-width: 2; rx: 10; ry: 10; }
+    .conn { stroke: #1B4965; stroke-width: 1.5; marker-end: url(#arrow); }
+    .title { font-size: 16px; font-weight: bold; fill: #1B4965; }
+    .label { font-size: 12px; font-weight: bold; fill: #1B4965; }
+    .field { font-size: 10px; fill: #333; }
+  </style>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#1B4965"/>
+    </marker>
+  </defs>
+
+  <!-- Título -->
+  <text x="400" y="30" text-anchor="middle" class="title">Modelo Estrela - BI de Suporte</text>
+  <text x="400" y="50" text-anchor="middle" fill="#666">1.500 chamados, 5 dimensões</text>
+
+  <!-- Dimensões (arranjadas em círculo superior) -->
+  <rect x="50" y="80" width="140" height="40" class="dim"/>
+  <text x="120" y="105" text-anchor="middle" class="label">dim_filial</text>
+
+  <rect x="210" y="80" width="140" height="40" class="dim"/>
+  <text x="280" y="105" text-anchor="middle" class="label">dim_categoria</text>
+
+  <rect x="370" y="80" width="140" height="40" class="dim"/>
+  <text x="440" y="105" text-anchor="middle" class="label">dim_prioridade</text>
+
+  <rect x="530" y="80" width="140" height="40" class="dim"/>
+  <text x="600" y="105" text-anchor="middle" class="label">dim_atendente</text>
+
+  <rect x="690" y="80" width="140" height="40" class="dim"/>
+  <text x="760" y="105" text-anchor="middle" class="label">dim_data</text>
+
+  <!-- Fato central -->
+  <rect x="280" y="180" width="240" height="120" class="fato"/>
+  <text x="400" y="210" text-anchor="middle" class="label">fato_chamados</text>
+
+  <!-- Campos do fato -->
+  <text x="300" y="235" class="field">id (PK)</text>
+  <text x="300" y="255" class="field">filial, categoria, prioridade, atendente</text>
+  <text x="300" y="275" class="field">data_abertura (FK)</text>
+  <text x="300" y="295" class="field">aberto_em, resolvido_em, prazo_horas</text>
+  <text x="300" y="315" class="field">status, horas_resolucao, resolvido_no_prazo</text>
+
+  <!-- Conexões -->
+  <line x1="260" y1="100" x2="320" y2="185" class="conn"/>
+  <line x1="350" y1="100" x2="400" y2="185" class="conn"/>
+  <line x1="440" y1="100" x2="460" y2="185" class="conn"/>
+  <line x1="530" y1="100" x2="540" y2="185" class="conn"/>
+  <line x1="620" y1="100" x2="580" y2="185" class="conn"/>
+
+  <!-- Legenda -->
+  <rect x="50" y="350" width="100" height="40" fill="#E8F4F8" stroke="#2E86AB" rx="5"/>
+  <text x="100" y="375" text-anchor="middle" class="field">Legenda</text>
+  <text x="100" y="395" text-anchor="middle" font-size="9" fill="#666">Relacionamentos 1:N</text>
+</svg>
