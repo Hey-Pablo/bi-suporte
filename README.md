@@ -1,6 +1,6 @@
 # BI de Suporte
 
-> **Demonstração:** em breve
+> **Demonstração:** em breve (Pablo monta o .pbix no Windows)
 
 > **Link da demonstração no README:** em breve (após o Pablo montar o relatório e exportar GIF/PDF)
 
@@ -130,8 +130,9 @@ A origem (`painel-chamados`) não possui informação de atendente. Criei `dim_a
 - **Reabertura não existe**: campo `reaberto` é sempre NULL
 - **Power BI Desktop requer Windows**: a construção e validação do `.pbix` precisa ser feita no PC do Pablo
 
-> **Status:** .pbix pendente - SQL e visões prontos, relatório a ser montado no Power BI Desktop
+> **Status:** .pbix pendente - SQL e visões prontos, checklist para montagem no Power BI Desktop pronto
 - **SQL Server não está na VPS**: instalação manual ou Docker necessária
+- **Power BI Desktop requer Windows**: construção e validação do .pbix precisa ser feita no PC do Pablo
 
 ## Próximos Passos
 
