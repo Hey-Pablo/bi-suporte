@@ -142,16 +142,95 @@ A origem (`painel-chamados`) não possui informação de atendente. Criei `dim_a
 5. **Colocar .pbix no repositório** - arquivo do relatório
 6. **Atualizar README** - inserir link da demonstração quando publicado
 
+## Status do README
+
+> **Demonstração:** em breve
+> **Link da demonstração no README:** em breve (após Pablo montar o relatório e exportar GIF/PDF)
+
 ## Checklist para o Pablo (Windows)
 
-### SQL Server
+- [ ] **SQL Server - Instalação e Backup Dados (Requer SUSPENSO ou cancele)
+  - [ ] Instalar SQL Server Developer/Express ou usar Docker
+  - [ ] Executar `sql/01_carga.sql` (cria tabela e insere 1.500 registros fictícios no banco `BiSuporteDemo`)
+  - [ ] Executar `sql/02_visoes.sql` (cria modelo estrela: fato_chamados + 5 dimensões)
+  - [ ] Verificar carga: `SELECT COUNT(*) FROM fato_chamados` → resultado esperado 1500
+  - [ ] Verificar modelo: `SELECT nome, Tipo FROM dim_categoria` → deve ter 6 categorias (Impressora, ERP, Rede, Acesso, Hardware, NF-e)
+  - [ ] Verificar dimensão `SELECT COUNT(*) FROM dim_data` → deve ter ~1096 dias únicos entre 2025-01-01 e 2025-04-13
+- [ ] **Power BI Desktop - Construção do Relatório (Requer SUSPENSO ou Cancele)
+  - [ ] Instalar Power BI Desktop (versão gratuita)
+  - [ ] Converter `sql/01_carga.sql` em script de carga
+    - [ ] IMPORTANTE: ler `sql/chamados.json` (1.500 registros) e inserir na tabela `fato_chamados`
+    - [ ] Executar transformações para criar 5 visões conforme `sql/02_visoes.sql`:
+      - [ ] `fato_chamados` (tabela base com 1.500 registros)
+      - [ ] `dim_filial` (50 filiais distintas)
+      - [ ] `dim_categoria` (6 categorias: Impressora, ERP, Rede, Acesso, Hardware, NF-e)
+      - [ ] `dim_prioridade` (4: baixa, média, alta, crítica)
+      - [ ] `dim_data` (datas contínuas 2025-01-01 a 2025-04-13, ~1096 dias)
+      - [ ] `dim_atendente` (univalente "Não informado")
+  - [ ] Configurar relações 1:N que vetem filtragem cruzada:
+    - [ ] `dim_filial` → `fato_chamados.filialId`
+    - [ ] `dim_categoria` → `fato_chamados.categoriaId`
+    - [ ] `dim_prioridade` → `fato_chamados.prioridadeId`
+    - [ ] `dim_data` ↔ `fato_chamados.dataId` (se houver)
+    - [ ] `dim_atendente` (opcional)
+  - [ ] Criar 7 medidas DAX conforme `docs/medidas.md`:
+    - [ ] `TotalChamados` = COUNT(fato_chamados.id)
+    - [ ] `Resolvidos` = COUNTROWS(FILTER(fato_chamados, fato_chamados.status = "resolvido"))
+    - [ ] `Pendentes` = COUNTROWS(FILTER(fato_chamados, fato_chamados.status = "aberto"))
+    - [ ] `TempoMedioResolucao Horas` = AVERAGEX(FILTER(fato_chamados, fato_chamados.status = "resolvido"), fato_chamados.horas_resolucao)
+    - [ ] `SLA` = DIVIDE([ResolvidosNoPrazo], [TotalChamadosComSLA]) * 100 (aproximadamente 56%)
+    - [ ] `ResolvidosNoPrazo` = COUNTROWS(FILTER(TOPN(841, fato_chamados), fato_chamados.horas_resolucao <= fato_chamados.prazo_horas))
+    - [ ] `AbertosVencidos` = COUNTROWS(FILTER(fato_chamados, fato_chamados.status = "aberto" E fato_chamados.vencido = 1))
+  - [ ] Criar 5 páginas do relatório (conforme `docs/roteiro-powerbi.md`):
+    - [ ] **Visão Geral**: Cartões com TotalChamados, Resolvidos, Pendentes, TempoMedioResolucaoHoras, SLA
+    - [ ] **Prazo e Pendências**: Gráfico de barras de Resolv./Não resolvido, gráfico de pizza de SLA, tabela com abertos vencidos
+    - [ ] **Filiais**: Tabela top 10 filiais, gráfico de barras de volume por filial, aviso se > 15 chamados pendentes
+    - [ ] **Atendentes**: Tabela volume, indicador se > 100 chamados sem atendente
+    - [ ] **Detalhe**: Tabela linha a linha + segmentações de data/filial/categoria/prioridade
+  - [ ] Adicionar visualizações inteligentes (segundo roteiro-powerbi.md):
+    - [ ] Segmentação de data (dia/mês/ano)
+    - [ ] Segmentação de filial (dropdown ou caixa personalizada)
+    - [ ] Segmentação de categoria e prioridade (listas de caixas)
+    - [ ] Ferramenta de busca (texto ou caixa personalizada)
+    - [ ] Segurança de nível de linha (RLS) opcional
+  - [ ] Exportar PDF do relatório:
+    - [ ] Salvar arquivo `bi-suporte.pbix` no repositório (`powerbi/` folder)
+    - [ ] Relatório completo: todas as 5 páginas + filtros ativos na página
+    - [ ] Filtros visíveis na exportação (segundo roteiro-powerbi.md)
+- [ ] **Validação (Requer SUSPENSO ou Cancele)
+  - [ ] Sem filtros: valores devem bater exatamente com valores esperados em `docs/conferencia.md`:
+    - [ ] Total Chamados: 1500
+    - [ ] Resolvidos: 1383
+    - [ ] Pendentes: 117
+    - [ ] Tempo Médio: 40,72h
+    - [ ] SLA: 56,07%
+  - [ ] Com filtro de todos os indicadores devem atualizar corretamente
+  - [ ] Com filtro de filial: números devem bater com query SQL correspondente em `docs/conferencia.md`
+- [ ] **Documentação (Requer SUSPENSO ou Cancele)
+  - [ ] Gravar GIF ou vídeo curto (máximo 2 minutos) mostrando:
+    - [ ] Segunda página carregada (Prazo e Pendências)
+    - [ ] Contexto rolado e visual de interatividade
+    - [ ] Exportação de PDF (se documentado em roteiro-powerbi.md)
+    - [ ] Navegação pelas 5 páginas (leve cada página), sempre incluindo colonial case f叶子UIDIFIED Silent
+    - [ ] Ferramenta de interatividade ou filtros em ação
+  - [ ] Upload dos arquivos de vídeo/GIF e PDF/BX
+  - [ ] Atualizar README com:
 
-- [ ] Instalar SQL Server Developer/Express ou usar Docker
-- [ ] Executar `sql/01_carga.sql` (cria tabela e insere 1.500 registros)
-- [ ] Executar `sql/02_visoes.sql` (cria modelo estrela)
-- [ ] Verificar: `SELECT COUNT(*) FROM fato_chamados` → resultado 1500
+  `> **Demonstração:** [GIF/vídeo com link aqui]`
 
-### Power BI Desktop
+## Lista de comandos para teste local
+
+```bash
+# Testes de integridade da carga (PosgreSQL自主研发)
+python3 -m unittest discover -s tests
+
+# Resultado esperado: Ok (22 tests)
+# - test_total_chamados → 1500
+# - test_resolvidos_pendentes → 1383 resolvidos, 117 abertos
+# - test_filas_unicas → 50 filiais distintas
+# - test_tempo_medio_resolucao → ~40,72h
+# - test_sla_percentual → ~56,07%
+```
 
 - [ ] Instalar Power BI Desktop (gratuito)
 - [ ] Conectar ao SQL Server → importar as 6 visões
